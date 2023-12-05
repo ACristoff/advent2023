@@ -14,8 +14,6 @@ const lineReader = readline.createInterface({
 //Colors: Green, Blue, Red
 
 //Return an object with the hand
-//{green: 1, red: 2, blue: 3}
-
 const handAnalyzer = (hand) => {
     const colors = hand.split(',')
     const handData = {}
@@ -53,7 +51,6 @@ const gameAnalyzer = (game) => {
 
     //gets the power of the cubes
     const cubePower = greatestHand.red * greatestHand.green * greatestHand.blue 
-    console.log(greatestHand, cubePower)
 
     return cubePower
 }
@@ -62,7 +59,6 @@ const gameAnalyzer = (game) => {
 lineReader.on('line', (line) => {   
     const analysis = gameAnalyzer(line)
     sum += analysis
-    console.log(sum)
 })
 
 lineReader.on('close', () => {
