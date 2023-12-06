@@ -19,11 +19,41 @@ let sum = 0
 
 //Sum results
 
+analyzeCardResults = (card) => {
+    // const cardId
+    //TODO There is a more efficient way to do this with regex
+    // const winningNums = card.split(/(?:,|:)+/)[1].split("|")[0].trim().split(" ")
+    const numSets =  card.split(/(?:,|:)+/)[1].split("|")
+    //Have to filter for whitespace
+    const winNums = numSets[0].trim().split(" ").filter(function(str) { return /\S/.test(str); });
+    const cardNums = numSets[1].trim().split(" ").filter(function(str) { return /\S/.test(str); });
+
+    const matches = winNums.reduce((acc, curr) => {
+        if (cardNums.includes(curr)) {
+            acc.push(curr)
+        }
+        return acc
+    }, [])
+
+    let power = 0
+    matches.forEach((match) => {
+        if (power === 0) {
+            power += 1
+        } else {
+            power = power * 2
+        }
+    })
+
+    return power
+}
+
 lineReader.on('line', (line) => {   
-    console.log(line)
+    const result = analyzeCardResults(line)
+    sum += result
 })
 
 
 lineReader.on('close', () => {
+    console.log(sum)
     console.log('---End Log---')
 })
