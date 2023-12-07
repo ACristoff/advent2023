@@ -15,15 +15,15 @@ let sum = 0
 //Seperate card numbers and winning numbers into two sets
 //Loop over winning numbers and search card number for matches
 //For each match, push to an array
-//For each entry in the array multiply the score by 2 (base 1 if there is at least one match)
 
-//Sum results
+//Each card creates copies of the subsequent cards equivalent to its matches
+//Use a map to add IDs and their copies
 
 analyzeCardResults = (card) => {
-    // const cardId
     //TODO There is a more efficient way to do this with regex
-    // const winningNums = card.split(/(?:,|:)+/)[1].split("|")[0].trim().split(" ")
-    const numSets =  card.split(/(?:,|:)+/)[1].split("|")
+    const split =  card.split(/(?:,|:)+/)
+    const cardId = Number(split[0].split(" ").filter(function(str) { return /\S/.test(str); })[1])
+    const numSets = split[1].split("|")
     //Have to filter for whitespace
     const winNums = numSets[0].trim().split(" ").filter(function(str) { return /\S/.test(str); });
     const cardNums = numSets[1].trim().split(" ").filter(function(str) { return /\S/.test(str); });
@@ -35,25 +35,35 @@ analyzeCardResults = (card) => {
         return acc
     }, [])
 
-    let power = 0
-    matches.forEach((match) => {
-        if (power === 0) {
-            power += 1
-        } else {
-            power = power * 2
-        }
-    })
-
-    return power
+    return {matches: matches.length, Id: cardId}
 }
 
+const copyMap = new Map();
+
+copyMap.set(1, 1)
+
 lineReader.on('line', (line) => {   
-    const result = analyzeCardResults(line)
-    sum += result
+    const cardResult = analyzeCardResults(line)
+    const currentCopyNumber = copyMap.get(cardResult.Id)
+
+    for (let i = 0; i < cardResult.matches; i++) {
+        const nextCardId = cardResult.Id + i + 1
+        const getNextCard = copyMap.get(nextCardId) ? copyMap.get(cardResult.Id + i + 1) : 1
+
+        copyMap.set(nextCardId, getNextCard + 1 * currentCopyNumber)
+    }
+
+    if (cardResult.matches === 0) {
+        const nextCard = copyMap.get(cardResult.Id + 1) ? copyMap.get(cardResult.Id + 1) : 1
+        copyMap.set(cardResult.Id + 1, nextCard)
+    }
+
 })
 
-
 lineReader.on('close', () => {
-    console.log(sum)
+    copyMap.forEach((v) => {
+        sum += v
+    })
+    console.log(sum - 1)
     console.log('---End Log---')
 })
