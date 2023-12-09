@@ -7,15 +7,27 @@ const lineReader = readline.createInterface({
     terminal: false
 })
 
+const seedMap = new Map()
 
-const copyMap = new Map();
+//Map the seeds
+//Go through each category transformation
+    //Figure out range
+    //If current seed value is within range, transform it
 
-copyMap.set(1, 1)
-
-lineReader.on('line', (line) => {   
+lineReader.on('line', (line) => {
     console.log(line)
+    if (line !== '') {
+        const split = line.split(' ')
+        if (split[0] === 'seeds:') {
+            for (let i = 1; i < split.length; i++) {
+                seedMap.set(Number(split[i]), Number(split[i]))
+            }
+        }
+    }
+
 })
 
 lineReader.on('close', () => {
+    console.log(seedMap)
     console.log('---End Log---')
 })

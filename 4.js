@@ -25,8 +25,8 @@ analyzeCardResults = (card) => {
     const cardId = Number(split[0].split(" ").filter(function(str) { return /\S/.test(str); })[1])
     const numSets = split[1].split("|")
     //Have to filter for whitespace
-    const winNums = numSets[0].trim().split(" ").filter(function(str) { return /\S/.test(str); });
-    const cardNums = numSets[1].trim().split(" ").filter(function(str) { return /\S/.test(str); });
+    const winNums = numSets[0].trim().split(" ").filter(function(str) { return /\S/.test(str); })
+    const cardNums = numSets[1].trim().split(" ").filter(function(str) { return /\S/.test(str); })
 
     const matches = winNums.reduce((acc, curr) => {
         if (cardNums.includes(curr)) {
