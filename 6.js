@@ -5,9 +5,10 @@ const input = fs.readFileSync(path.resolve(__dirname, "input6.txt"), "utf8").spl
 const distances = input[0].split(' ').filter(function(str) { return /\S/.test(str); })
 const times = input[1].split(' ').filter(function(str) { return /\S/.test(str); })
 
-const races = distances.slice(1, distances.length).map((entry, index) => {
-    return [Number(entry), Number(times[index + 1])]
-})
+distances.shift()
+times.shift()
+
+const races = [[Number(distances.join('')), Number(times.join(''))]]
 
 // Your toy boat has a starting speed of zero millimeters per millisecond. For each whole millisecond you spend at the beginning of the race holding down the button, the boat's speed increases by one millimeter per millisecond.
 
@@ -35,4 +36,4 @@ for (race of races) {
     results.push(calculateLongest(race[0], race[1]))
 }
 
-console.log(results.reduce((acc, i) => acc * i))
+console.log(results[0])
