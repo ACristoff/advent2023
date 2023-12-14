@@ -16,72 +16,55 @@ const seedMap = new Map()
 
 const numRegex = /(?:[0-9])/gi;
 
-const transformSeed = (arr) => {
-    const sourceRangeStart = Number(arr[1])
-    const destRangeStart = Number(arr[0])
-    const range = Number(arr[2])
-
+const transformSeed = (transformationArr, seed) => {
+    const sourceRangeStart = Number(transformationArr[1])
+    const destRangeStart = Number(transformationArr[0])
+    const range = Number(transformationArr[2])
     const offset = destRangeStart - sourceRangeStart
-
-    const []
-
-    // console.log('offset is, ', offset)
-
-    //assignment makes it unclear without manual checking whether there is overlap in transformations
-        //if there is no overlap then I could eliminate seeds from the transformation candidate pool during each transformation and make it more performant
-    //loop through each seed
-    //if this seed is within the source range, transform it
     //NOTE ranges are 0 indexed
-
-    for (seed of seedMap) {
-        if (seed[1] >= sourceRangeStart && seed[1] < sourceRangeStart + range) {
-            
-            // console.log('offset is, ', offset)
-            seedMap.set(seed[0], seed[1] + offset)
-
-            // if recurring seed continue?
-
-            //53
-            //18 25 70 -7
-            //!Seed 14, soil 14, fertilizer 53, water 49, light 42, temperature 42, humidity 43, location 43.
-            
-            // if (seed[0] === 14) {
-            //     console.log(destRangeStart, sourceRangeStart, range, offset)
-            //     console.log(seed)
-            // }
-            // console.log(seed[0], seed[1])
-        }
+    if (seed[1] >= sourceRangeStart && seed[1] < sourceRangeStart + range) {
+        seedMap.set(seed[0], seedMap.get(seed[0]) + offset)
+        return true
     }
-
-    // console.log(destRangeStart, sourceRangeStart, range)
+    return false
 }
 
-//!TODO: Instead, map out all transforms by group, then loop through each seed and transform it as many times as necessary. This solution is more efficient instead of going through each transform and checking against each seed.
-
-
-let transformState = 0
+const mapsList = []
 
 lineReader.on('line', (line) => {
     if (line !== '') {
         const split = line.split(' ')
         if (split[0] === 'seeds:') {
-            // console.log(line)
             for (let i = 1; i < split.length; i++) {
                 seedMap.set(Number(split[i]), Number(split[i]))
             }
-        }
-        else if (line[0].match(numRegex)) {
-            
-            transformSeed(line.split(' '))
+        } else if (line[0].match(numRegex)) {
+            mapsList[mapsList.length - 1].transforms.push(split)
         } else {
-            console.log(line)
+            mapsList.push({type: split[0], transforms: []})
         }
-        // else if  ()
     }
 
 })
 
+//Go through each seed
+    //Go through each array category
+        //Loop through each category's maps
+        //if the seed is transformed by one of the maps move to the next category
+const transformAll = () => {
+    for (const seed of seedMap) { 
+        for (let i = 0; i < mapsList.length; i++) {     
+            for (let j = 0; j < mapsList[i].transforms.length; j++) {
+                const skipToNext = transformSeed(mapsList[i].transforms[j], [seed[0], seedMap.get(seed[0])])
+                if (skipToNext === true) break;
+            }
+        }
+    }
+}
+
 lineReader.on('close', () => {
-    console.log(seedMap)
+    transformAll()
+    // console.log(seedMap)
+    console.log(Math.min(...seedMap.values()))
     console.log('---End Log---')
 })
