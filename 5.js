@@ -8,35 +8,56 @@ const lineReader = readline.createInterface({
 })
 
 const seedMap = new Map()
+const mapsList = []
+const results = []
 
 //Map the seeds
 //Go through each category transformation
     //Figure out range
     //If current seed value is within range, transform it
-
 const numRegex = /(?:[0-9])/gi;
 
-const transformSeed = (transformationArr, seed) => {
-    const sourceRangeStart = Number(transformationArr[1])
-    const destRangeStart = Number(transformationArr[0])
-    const range = Number(transformationArr[2])
-    const offset = destRangeStart - sourceRangeStart
-    //NOTE ranges are 0 indexed
-    if (seed[1] >= sourceRangeStart && seed[1] < sourceRangeStart + range) {
-        seedMap.set(seed[0], seedMap.get(seed[0]) + offset)
-        return true
-    }
-    return false
-}
+const transformSeedRange = (arrIndex, seedRange) => {
+    if (arrIndex === mapsList.length) return [seedRange]
+    const innerResult = []
 
-const mapsList = []
+    for (const transforms of mapsList[arrIndex].transforms) {
+        const destination = Number(transforms[0])
+        const source = Number(transforms[1])
+        const range = Number(transforms[2])
+        if (seedRange[0] < source && seedRange[0] + seedRange[1] > source && seedRange[0] + seedRange[1] <= source + range ) {
+            const startRange = [seedRange[0], source - seedRange[0]]
+            const endRange = [destination, seedRange[1] - source + seedRange[0]]
+            innerResult.push(...transformSeedRange(arrIndex + 1, endRange), ...transformSeedRange(arrIndex, startRange))
+            break
+        } else if (seedRange[0] >= source && seedRange[0] < source + range && seedRange[0] + seedRange[1] > source + range) {
+            const startRange = [destination + seedRange[0] - source, source + range - seedRange[0]]
+            const endRange = [source + range, seedRange[0] + seedRange[1] - source - range]
+            innerResult.push(...transformSeedRange(arrIndex + 1, startRange),  ...transformSeedRange(arrIndex, endRange))
+            break
+        } else if (seedRange[0] >= source && seedRange[0] + seedRange[1] <= source + range) {
+            innerResult.push(...transformSeedRange(arrIndex + 1, [destination + seedRange[0] - source, seedRange[1]]))
+            break
+        } else if (seedRange[0] < source && seedRange[0] + seedRange[1] > source + range) {
+            const startRange = [seedRange[0], source - seedRange[0]]
+            const midRange = [destination, range]
+            const endRange = [source + range, seedRange[0] + seedRange[1] - source - range]
+            innerResult.push(...transformSeedRange(arrIndex, endRange), ...transformSeedRange(arrIndex + 1, midRange), ...transformSeedRange(arrIndex, startRange))
+            break
+        }
+    }
+
+    if (innerResult.length === 0) innerResult.push(...transformSeedRange(arrIndex + 1, seedRange))
+
+    return innerResult
+}
 
 lineReader.on('line', (line) => {
     if (line !== '') {
         const split = line.split(' ')
         if (split[0] === 'seeds:') {
-            for (let i = 1; i < split.length; i++) {
-                seedMap.set(Number(split[i]), Number(split[i]))
+            for (let i = 1; i < split.length; i += 2) {
+                seedMap.set(Number(split[i]), Number(split[i + 1]))
             }
         } else if (line[0].match(numRegex)) {
             mapsList[mapsList.length - 1].transforms.push(split)
@@ -51,20 +72,10 @@ lineReader.on('line', (line) => {
     //Go through each array category
         //Loop through each category's maps
         //if the seed is transformed by one of the maps move to the next category
-const transformAll = () => {
-    for (const seed of seedMap) { 
-        for (let i = 0; i < mapsList.length; i++) {     
-            for (let j = 0; j < mapsList[i].transforms.length; j++) {
-                const skipToNext = transformSeed(mapsList[i].transforms[j], [seed[0], seedMap.get(seed[0])])
-                if (skipToNext === true) break;
-            }
-        }
-    }
-}
-
 lineReader.on('close', () => {
-    transformAll()
-    // console.log(seedMap)
-    console.log(Math.min(...seedMap.values()))
+    for (const seedRange of seedMap) { 
+        results.push(transformSeedRange(0, seedRange))
+    }
+    console.log(Math.min(...results.flat().map(x => x[0])));
     console.log('---End Log---')
 })
