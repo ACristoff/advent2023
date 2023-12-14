@@ -6,17 +6,33 @@ const distances = input[0].split(' ').filter(function(str) { return /\S/.test(st
 const times = input[1].split(' ').filter(function(str) { return /\S/.test(str); })
 
 const races = distances.slice(1, distances.length).map((entry, index) => {
-    return [entry, times[index + 1]]
+    return [Number(entry), Number(times[index + 1])]
 })
-
-//Form a distance and time pairing, push it to the races array
-
-// This document describes three races:
-// The first race lasts 7 milliseconds. The record distance in this race is 9 millimeters.
-// The second race lasts 15 milliseconds. The record distance in this race is 40 millimeters.
-// The third race lasts 30 milliseconds. The record distance in this race is 200 millimeters.
 
 // Your toy boat has a starting speed of zero millimeters per millisecond. For each whole millisecond you spend at the beginning of the race holding down the button, the boat's speed increases by one millimeter per millisecond.
 
+const results = []
 
-console.log(distances, times, races)
+//Iterate through the times, calculating possible wins and stopping when a win is no longer valid
+//! There must be an easier way to calculate than iteration
+const calculateLongest = (time, distance) => {
+    let possibleWins = 0
+
+    //i represents speed for each millisecond held
+    for (let i = 1; i <= time; i++) {
+        const isWinningMove = i * (time - i) > distance
+
+        if (isWinningMove) {
+            possibleWins++
+        } else if (isWinningMove && possibleWins > 0) {
+            break
+        }
+    }
+    return possibleWins
+}
+
+for (race of races) {
+    results.push(calculateLongest(race[0], race[1]))
+}
+
+console.log(results.reduce((acc, i) => acc * i))
